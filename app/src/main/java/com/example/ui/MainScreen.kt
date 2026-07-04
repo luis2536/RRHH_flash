@@ -19,6 +19,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontFamily
@@ -1495,8 +1496,17 @@ fun EmployeeAdminRow(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .background(SurfaceSolid, RoundedCornerShape(12.dp))
-            .border(1.dp, Color.White.copy(alpha = 0.04f), RoundedCornerShape(12.dp))
+            .graphicsLayer {
+                shadowElevation = 8f
+                shape = RoundedCornerShape(12.dp)
+            }
+            .background(
+                Brush.verticalGradient(
+                    colors = listOf(SurfaceSolid, SurfaceSolid.copy(alpha = 0.9f))
+                ),
+                RoundedCornerShape(12.dp)
+            )
+            .border(1.dp, Color.White.copy(alpha = 0.08f), RoundedCornerShape(12.dp))
             .padding(14.dp)
     ) {
         // First row: Name, Role, CID
