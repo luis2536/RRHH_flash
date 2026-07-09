@@ -6,6 +6,11 @@ on:
   pull_request:
     branches: [ "main", "master" ]
 
+# Cancel previous runs for the same branch or PR to save resources
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build:
     name: Compilación y Verificación de Integridad
@@ -20,17 +25,7 @@ jobs:
       with:
         java-version: '21'
         distribution: 'temurin'
-        cache: gradle
-
-    - name: Cache de dependencias de Gradle
-      uses: actions/cache@v4
-      with:
-        path: |
-          ~/.gradle/caches
-          ~/.gradle/wrapper
-        key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/libs.versions.toml') }}
-        restore-keys: |
-          ${{ runner.os }}-gradle-
+        cache: 'gradle' # Esto maneja el caché automáticamente de forma óptima
 
     - name: Inicializar Archivo de Configuración de Entorno (.env)
       run: |
@@ -42,7 +37,7 @@ jobs:
         fi
         echo "Archivo .env inyectado con éxito para compilación segura."
 
-    - name: Verificar y Corregir Permisos del Wrapper de Gradle
+    - name: Dar Permisos de Ejecución al Wrapper de Gradle
       run: |
         if [ -f gradlew ]; then
           chmod +x gradlew
@@ -52,8 +47,18 @@ jobs:
           chmod +x gradlew
         fi
 
+    - name: Análisis de Código (Lint)
+      run: ./gradlew lintDebug --no-daemon --parallel --build-cache
+
     - name: Ejecutar Compilación de Depuración (assembleDebug)
-      run: ./gradlew assembleDebug --no-daemon --stacktrace
+      run: ./gradlew assembleDebug --no-daemon --parallel --build-cache --stacktrace
 
     - name: Ejecutar Pruebas Unitarias y de Robolectric
-      run: ./gradlew testDebugUnitTest --no-daemon
+      run: ./gradlew testDebugUnitTest --no-daemon --parallel --build-cache
+
+    - name: Subir Artifact del APK Generado
+      uses: actions/upload-artifact@v4
+      with:
+        name: app-debug-apk
+        path: app/build/outputs/apk/debug/app-debug.apk
+        retention-days: 7
