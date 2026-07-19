@@ -43,7 +43,7 @@ jobs:
           chmod +x gradlew
         else
           echo "Wrapper de Gradle no detectado en raíz. Generando wrapper temporal..."
-          gradle wrapper
+          gradle wrapper --gradle-version 9.3.1
           chmod +x gradlew
         fi
 
